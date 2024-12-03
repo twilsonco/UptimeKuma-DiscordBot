@@ -1,10 +1,42 @@
 <?php
 // Read and decode the config file
-$config = json_decode(file_get_contents(__DIR__ . '/../config.json'), true);
+// Try multiple possible locations for the config file
+$possiblePaths = [
+    __DIR__ . '/config.json',           // Same directory
+    __DIR__ . '/../config.json',        // One level up
+    __DIR__ . '/../../config.json',     // Two levels up
+    '/app/config.json'                  // Docker container location
+];
+
+$configFile = null;
+foreach ($possiblePaths as $path) {
+    error_log("Checking for config at: " . $path);
+    if (file_exists($path)) {
+        $configFile = $path;
+        error_log("Found config at: " . $path);
+        break;
+    }
+}
+
+if ($configFile === null) {
+    error_log("Config file not found in any of the expected locations");
+    die("Config file not found");
+}
+
+$config = json_decode(file_get_contents($configFile), true);
+if ($config === null) {
+    error_log("Failed to parse config JSON: " . json_last_error_msg());
+    die("Failed to parse config");
+}
+
 $url = $config['urls']['uptimeKumaBase'] . '/metrics'; //your URL
-$password = $config['uptimeKuma']['uptimeKumaAPIKey']; //your API key
+$password = $config['uptimeKumaAPIKey']; //your API key
 
 $username = ''; //leave empty
+
+// Debug: Print the URL being accessed
+error_log("Attempting to fetch from URL: " . $url);
+
 // Initialize a new cURL session
 $ch = curl_init($url);
 
@@ -50,6 +82,9 @@ if ($http_status == 200) {
             'status' => (int) $match[2]
         ];
     }
+
+    // Before outputting the final JSON, debug the data
+    error_log("Final data to be output: " . print_r($data, true));
     
     // Set the content type of the response to JSON
     header('Content-Type: application/json');

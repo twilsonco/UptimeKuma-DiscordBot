@@ -7,9 +7,9 @@
     "embedColor": "#0099ff",
     "uptimeKumaAPIKey": "<uptimeKumaAPIKey>",
     "urls": {
-        "backend": "<backend_url>",
         "uptimeKumaBase": "<uptime_kuma_base_url>",
-        "uptimeKumaDashboard": "<uptime_kuma_dashboard_url>"
+        "uptimeKumaDashboard": "<uptime_kuma_dashboard_url>",
+        "backend": "http://localhost/back-end.php"
     },
     "monitorGroups": {
         "Gaming": ["Lobby", "Skyblock", "Survival", "Creative", "KitPvP", "Factions", "Prison", "Skywars"],

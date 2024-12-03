@@ -1,6 +1,7 @@
 // Import required classes from discord.js and axios for making HTTP requests
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
+const fs = require('fs');
 
 // Validate the config object
 function validateConfig(config) {
@@ -28,7 +29,7 @@ function validateConfig(config) {
 // Function to load config
 function loadConfig() {
     try {
-        const newConfig = JSON.parse(fs.readFileSync('../config.json', 'utf8'));
+        const newConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), 'utf8'));
         return validateConfig(newConfig);
     } catch (error) {
         console.error('Error loading config:', error);
@@ -39,7 +40,7 @@ function loadConfig() {
 let config = loadConfig();
 
 // Watch for config file changes
-fs.watch('../config.json', (eventType, filename) => {
+fs.watch(path.join(__dirname, '../config.json'), (eventType, filename) => {
     if (eventType === 'change') {
         console.log('Config file changed, reloading...');
         const newConfig = loadConfig();
@@ -84,6 +85,7 @@ client.once('ready', async () => {
     // Call the function to update messages immediately
     await updateMessages();
     // Set interval to update messages every configured seconds
+    console.log('Sleeping for', config.updateTime, 'seconds');
     setInterval(updateMessages, config.updatetime * 1000);
 });
 
@@ -104,16 +106,32 @@ async function updateMessages() {
             return;
         }
 
-        // Make a GET request to the backend to fetch monitor data
-        const response = await axios.get(config.urls.backend);
-        const monitors = response.data;
+        try {
+            // Make a GET request to the backend to fetch monitor data
+            console.log('Attempting to fetch from:', config.urls.backend);
+            const response = await axios.get(config.urls.backend);
+            console.log('Response received:', response.status);
+            const monitors = response.data;
 
-        // Process each monitor group from config
-        for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
-            const groupMonitors = monitors.filter(monitor => 
-                monitorNames.includes(monitor.monitor_name)
-            );
-            await sendMonitorsMessage(channel, groupName, groupMonitors);
+            // Process each monitor group from config
+            if (!Array.isArray(monitors)) {
+                console.error('Monitors is not an array:', monitors);
+                return;
+            }
+            for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
+                const groupMonitors = monitors.filter(monitor => 
+                    monitorNames.includes(monitor.monitor_name)
+                );
+                await sendMonitorsMessage(channel, groupName, groupMonitors);
+            }
+        } catch (error) {
+            console.error('Error details:', {
+                config: error.config,
+                url: config.urls.backend,
+                status: error.response?.status,
+                data: error.response?.data
+            });
+            throw error;
         }
 
     } catch (error) {
@@ -151,7 +169,7 @@ async function sendMonitorsMessage(channel, category, monitors) {
         .setColor(config.embedColor)
         .setDescription(description)
         .setFooter({ text: `Last updated: ${new Date().toLocaleString()}` })
-        .setURL(config.urls.uptimeKumaDashboard);
+        .setURL(config.urls.backend);
 
     try {
         // Check if there is an existing message to update or send a new one

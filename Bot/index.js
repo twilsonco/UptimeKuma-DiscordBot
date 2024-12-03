@@ -1,5 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 function validateConfig(config) {
     const requiredFields = [
@@ -25,7 +27,7 @@ function validateConfig(config) {
 
 function loadConfig() {
     try {
-        const newConfig = JSON.parse(fs.readFileSync('../config.json', 'utf8'));
+        const newConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../config.json'), 'utf8'));
         return validateConfig(newConfig);
     } catch (error) {
         console.error('Error loading config:', error);
@@ -35,7 +37,7 @@ function loadConfig() {
 
 let config = loadConfig();
 
-fs.watch('../config.json', (eventType, filename) => {
+fs.watch(path.join(__dirname, '../config.json'), (eventType, filename) => {
     if (eventType === 'change') {
         console.log('Config file changed, reloading...');
         const newConfig = loadConfig();
@@ -70,7 +72,8 @@ if (channel && channel.isTextBased()) {
     console.error(`Unable to find text channel with ID ${config.channelID}`);
 }
     await updateMessages();
-    setInterval(updateMessages, config.updatetime * 1000);
+    console.log('Sleeping for', config.updateTime, 'seconds');
+    setInterval(updateMessages, config.updateTime * 1000);
 });
 
 async function updateMessages() {
@@ -87,16 +90,30 @@ async function updateMessages() {
             return;
         }
 
-        const response = await axios.get(config.urls.backend);
-        const monitors = response.data;
-
-        for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
-            const groupMonitors = monitors.filter(monitor => 
-                monitorNames.includes(monitor.monitor_name)
-            );
-            await sendMonitorsMessage(channel, groupName, groupMonitors);
+        try {
+            console.log('Attempting to fetch from:', config.urls.backend);
+            const response = await axios.get(config.urls.backend);
+            console.log('Response received:', response.status);
+            const monitors = response.data;
+            if (!Array.isArray(monitors)) {
+                console.error('Monitors is not an array:', monitors);
+                return;
+            }
+            for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
+                const groupMonitors = monitors.filter(monitor => 
+                    monitorNames.includes(monitor.monitor_name)
+                );
+                await sendMonitorsMessage(channel, groupName, groupMonitors);
+            }
+        } catch (error) {
+            console.error('Error details:', {
+                config: error.config,
+                url: config.urls.backend,
+                status: error.response?.status,
+                data: error.response?.data
+            });
+            throw error;
         }
-
     } catch (error) {
         console.error('Error:', error);
     }

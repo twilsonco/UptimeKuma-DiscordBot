@@ -1,0 +1,12 @@
+services:
+  uptime-kuma-discord-bot:
+    build:
+      context: /path/to/UptimeKuma-DiscordBot
+      dockerfile: Dockerfile
+    container_name: uptime-kuma-discord-bot
+    working_dir: /app
+    network_mode: bridge
+    environment:
+      - TZ=America/Denver
+    volumes:
+      - /path/to/UptimeKuma-DiscordBot/config.json:/app/config.json:ro
