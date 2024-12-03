@@ -1,0 +1,19 @@
+{
+    "token": "<token>",
+    "guildID": "<guildID>",
+    "channelID": "<channelID>",
+    "clientID": "<ClientID>",
+    "updateTime": 60,
+    "embedColor": "#0099ff",
+    "uptimeKumaAPIKey": "<uptimeKumaAPIKey>",
+    "urls": {
+        "backend": "<backend_url>",
+        "uptimeKumaBase": "<uptime_kuma_base_url>",
+        "uptimeKumaDashboard": "<uptime_kuma_dashboard_url>"
+    },
+    "monitorGroups": {
+        "Gaming": ["Lobby", "Skyblock", "Survival", "Creative", "KitPvP", "Factions", "Prison", "Skywars"],
+        "Discord": ["Discord bot", "Status bot"],
+        "Web": ["web1", "web2", "web3"]
+    }
+}

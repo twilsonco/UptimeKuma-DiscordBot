@@ -1,8 +1,8 @@
 <?php
-// Define the URL and API key for the metrics endpoint
-$url = '<yourURL>/metrics'; //your URL
-// Retrieve an API key from the UptimeKuma dashboard here <yourURL>/settings/api-keys
-$password = '***************'; //your API key
+// Read and decode the config file
+$config = json_decode(file_get_contents(__DIR__ . '/../config.json'), true);
+$url = $config['urls']['uptimeKumaBase'] . '/metrics'; //your URL
+$password = $config['uptimeKuma']['uptimeKumaAPIKey']; //your API key
 
 $username = ''; //leave empty
 // Initialize a new cURL session

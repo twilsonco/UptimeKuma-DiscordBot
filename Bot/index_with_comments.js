@@ -1,7 +1,7 @@
 // Import required classes from discord.js and axios for making HTTP requests
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
-const config = require('./config.json');
+const config = require('../config.json');
 
 // Create a new Discord client instance with specified intents
 const client = new Client({
@@ -12,12 +12,11 @@ const client = new Client({
     ]
 });
 
-// Object to store the IDs of the monitor messages
-let monitorMessages = {
-    Gaming: null,
-    Discord: null,
-    Web: null
-};
+// Initialize monitorMessages with all groups from config
+let monitorMessages = Object.keys(config.monitorGroups).reduce((acc, groupName) => {
+    acc[groupName] = null;
+    return acc;
+}, {});
 
 // Event listener for when the bot is ready
 client.once('ready', async () => {
@@ -57,26 +56,16 @@ async function updateMessages() {
         }
 
         // Make a GET request to the backend to fetch monitor data
-        const response = await axios.get('<YOUR_BACKEND_URL>');
+        const response = await axios.get(config.urls.backend);
         const monitors = response.data;
 
-        // Filter monitors into categories
-        const gamingMonitors = monitors.filter(monitor => [
-            'Lobby', 'Skyblock', 'Survival', 'Creative', 'KitPvP', 'Factions', 'Prison', 'Skywars'
-        ].includes(monitor.monitor_name));
-
-        const discordMonitors = monitors.filter(monitor => [
-            'Discord bot', 'Status bot'
-        ].includes(monitor.monitor_name));
-
-        const webMonitors = monitors.filter(monitor => [
-            'web1', 'web2', 'web3'
-        ].includes(monitor.monitor_name));
-
-        // Send or update monitor messages in the channel
-        await sendMonitorsMessage(channel, 'Gaming', gamingMonitors);
-        await sendMonitorsMessage(channel, 'Discord', discordMonitors);
-        await sendMonitorsMessage(channel, 'Web', webMonitors);
+        // Process each monitor group from config
+        for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
+            const groupMonitors = monitors.filter(monitor => 
+                monitorNames.includes(monitor.monitor_name)
+            );
+            await sendMonitorsMessage(channel, groupName, groupMonitors);
+        }
 
     } catch (error) {
         console.error('Error:', error);
@@ -110,10 +99,10 @@ async function sendMonitorsMessage(channel, category, monitors) {
     // Create the embed message
     let embed = new EmbedBuilder()
         .setTitle(`${category} Monitor`)
-        .setColor('#0099ff')
+        .setColor(config.embedColor)
         .setDescription(description)
         .setFooter({ text: `Last updated: ${new Date().toLocaleString()}` })
-        .setURL('<YOUR_UPTIMEKUMA_URL>');
+        .setURL(config.urls.uptimeKumaDashboard);
 
     try {
         // Check if there is an existing message to update or send a new one
