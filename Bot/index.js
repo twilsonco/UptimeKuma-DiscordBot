@@ -179,6 +179,7 @@ async function clearChannel(channel) {
         console.error('Error clearing channel:', error);
     }
 }
+
 client.login(config.token).catch(error => {
     console.error('Error logging in:', error);
 });

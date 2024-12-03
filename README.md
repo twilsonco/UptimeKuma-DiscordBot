@@ -13,13 +13,45 @@ As you can see in the screenshot below, the bot is able to send a message on a c
 
 ## Installation and Configuration:
 
-1. **Install Uptime Kuma and configure it:** [Uptime Kuma](link_to_uptime_kuma)
-2. **Create an webserver capable of running PHP.**
-3. **[Follow these back-end instructions](https://github.com/Lauwy222/UptimeKuma-DiscordBot/blob/main/Web/setup.md)**
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Lauwy222/UptimeKuma-DiscordBot.git
+   cd UptimeKuma-DiscordBot
+   ```
 
-4. **[Install Node JS](https://discordjs.guide/preparations/)**
-5. **[Create a Discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)**
-6. **[Follow these bot instructions](https://github.com/Lauwy222/UptimeKuma-DiscordBot/blob/main/Bot/setup.md)**
+2. **Install Uptime Kuma and configure it:**
+
+3. **[Create a Discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)**
+
+4. **Choose your setup method:**
+
+   - **Standard Setup**
+     1. Create a web server capable of running PHP
+     2. [Install Node JS](https://discordjs.guide/preparations/)
+
+   - **Docker Setup**
+     - Either use docker-compose:
+        - Modify the paths in `docker-compose.yml` to match your system
+        - Run `docker-compose up -d`
+     
+     - Or use these docker commands:
+        ```bash
+        # Build the image
+        docker build -t uptime-kuma-discord-bot /path/to/UptimeKuma-DiscordBot
+
+        # Run the container
+        docker run -d \
+          --name uptime-kuma-discord-bot \
+          -v /path/to/config.json:/app/config.json:ro \
+          -e TZ=<YourTimeZone> \
+          --network bridge \
+          uptime-kuma-discord-bot
+        ```
+     - Replace `/path/to/UptimeKuma-DiscordBot` and `/path/to/config.json` with the actual paths on your system
+     - *Lookup your time zone string on [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)*
+
+5. **[Follow these back-end instructions](Web/setup.md)**
+6. **[Follow these bot instructions](Bot/setup.md)**
 
 ## Future Plans:
 

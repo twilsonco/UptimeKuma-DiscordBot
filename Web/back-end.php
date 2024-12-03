@@ -82,10 +82,7 @@ if ($http_status == 200) {
             'status' => (int) $match[2]
         ];
     }
-
-    // Before outputting the final JSON, debug the data
-    error_log("Final data to be output: " . print_r($data, true));
-    
+        
     // Set the content type of the response to JSON
     header('Content-Type: application/json');
     // Output the data in JSON format

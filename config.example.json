@@ -2,7 +2,7 @@
     "token": "<token>",
     "guildID": "<guildID>",
     "channelID": "<channelID>",
-    "clientID": "<ClientID>",
+    "clientID": "<clientID>",
     "updateTime": 60,
     "embedColor": "#0099ff",
     "uptimeKumaAPIKey": "<uptimeKumaAPIKey>",
