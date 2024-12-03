@@ -1,6 +1,51 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
-const config = require('../config.json');
+
+function validateConfig(config) {
+    const requiredFields = [
+        'token',
+        'guildID',
+        'channelID',
+        'clientID',
+        'updateTime',
+        'embedColor',
+        'urls',
+        'monitorGroups',
+        'uptimeKumaAPIKey'
+    ];
+
+    for (const field of requiredFields) {
+        if (!(field in config)) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
+
+    return config;
+}
+
+function loadConfig() {
+    try {
+        const newConfig = JSON.parse(fs.readFileSync('../config.json', 'utf8'));
+        return validateConfig(newConfig);
+    } catch (error) {
+        console.error('Error loading config:', error);
+        return null;
+    }
+}
+
+let config = loadConfig();
+
+fs.watch('../config.json', (eventType, filename) => {
+    if (eventType === 'change') {
+        console.log('Config file changed, reloading...');
+        const newConfig = loadConfig();
+        if (newConfig) {
+            config = newConfig;
+            console.log('Config reloaded successfully');
+            updateMessages().catch(console.error);
+        }
+    }
+});
 
 const client = new Client({
     intents: [
@@ -10,7 +55,6 @@ const client = new Client({
     ]
 });
 
-// Initialize monitorMessages with all groups from config
 let monitorMessages = Object.keys(config.monitorGroups).reduce((acc, groupName) => {
     acc[groupName] = null;
     return acc;
@@ -25,9 +69,7 @@ if (channel && channel.isTextBased()) {
 } else {
     console.error(`Unable to find text channel with ID ${config.channelID}`);
 }
-    // Call the function to update messages immediately
     await updateMessages();
-    // Set interval to update messages every 30 seconds
     setInterval(updateMessages, config.updatetime * 1000);
 });
 
@@ -48,7 +90,6 @@ async function updateMessages() {
         const response = await axios.get(config.urls.backend);
         const monitors = response.data;
 
-        // Process each monitor group from config
         for (const [groupName, monitorNames] of Object.entries(config.monitorGroups)) {
             const groupMonitors = monitors.filter(monitor => 
                 monitorNames.includes(monitor.monitor_name)

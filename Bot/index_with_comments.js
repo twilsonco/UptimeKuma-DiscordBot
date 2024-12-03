@@ -1,7 +1,56 @@
 // Import required classes from discord.js and axios for making HTTP requests
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
-const config = require('../config.json');
+
+// Validate the config object
+function validateConfig(config) {
+    const requiredFields = [
+        'token',
+        'guildID',
+        'channelID',
+        'clientID',
+        'updateTime',
+        'embedColor',
+        'urls',
+        'monitorGroups',
+        'uptimeKumaAPIKey'
+    ];
+
+    for (const field of requiredFields) {
+        if (!(field in config)) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
+
+    return config;
+}
+
+// Function to load config
+function loadConfig() {
+    try {
+        const newConfig = JSON.parse(fs.readFileSync('../config.json', 'utf8'));
+        return validateConfig(newConfig);
+    } catch (error) {
+        console.error('Error loading config:', error);
+        return null;
+    }
+}
+
+let config = loadConfig();
+
+// Watch for config file changes
+fs.watch('../config.json', (eventType, filename) => {
+    if (eventType === 'change') {
+        console.log('Config file changed, reloading...');
+        const newConfig = loadConfig();
+        if (newConfig) {
+            config = newConfig;
+            console.log('Config reloaded successfully');
+            // Optionally trigger an immediate update
+            updateMessages().catch(console.error);
+        }
+    }
+});
 
 // Create a new Discord client instance with specified intents
 const client = new Client({
