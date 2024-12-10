@@ -166,7 +166,14 @@ async function sendMonitorsMessage(channel, category, monitors) {
             console.log(`${new Date().toLocaleString()} | Sent ${category} monitors message`);
         }
     } catch (error) {
-        console.error(`Failed to send/update ${category} monitors message:`, error);
+        try{
+            const newMessage = await channel.send({ embeds: [embed] });
+            monitorMessages[category] = newMessage.id;
+            console.log(`${new Date().toLocaleString()} | Sent ${category} monitors message`);
+        }
+        catch(error){
+            console.error(`Failed to send/update ${category} monitors message:`, error);
+        }
     }
 }
 

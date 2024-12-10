@@ -10,3 +10,4 @@ services:
       - TZ=America/Denver
     volumes:
       - /path/to/UptimeKuma-DiscordBot/config.json:/app/config.json:ro
+      - /path/to/UptimeKuma-DiscordBot/Bot/index.js:/app/Bot/index.js:ro
